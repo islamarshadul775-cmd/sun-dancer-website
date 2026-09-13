@@ -1,0 +1,168 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Restaurant core info
+model Restaurant {
+  id          String   @id @default(cuid())
+  name        String
+  description String   @db.Text
+  address     String
+  phone       String
+  email       String   @unique
+  whatsapp    String
+  facebook    String?
+  instagram   String?
+  latitude    Float
+  longitude   Float
+  timezone    String   @default("Asia/Dhaka")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  openingHours OpeningHour[]
+  @@map("restaurants")
+}
+
+model OpeningHour {
+  id            String   @id @default(cuid())
+  restaurantId  String
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  weekday       Int      // 0 = Sunday ... 6 = Saturday
+  isOpen        Boolean  @default(true)
+  openTime      String?  // "HH:mm"
+  closeTime     String?  // "HH:mm"
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([restaurantId, weekday])
+  @@map("opening_hours")
+}
+
+// Menu Management
+model MenuCategory {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  sortOrder Int
+  active    Boolean  @default(true)
+
+  items     MenuItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("menu_categories")
+}
+
+model MenuItem {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String   @db.Text
+  price       Float
+  imageUrl    String
+  popular     Boolean  @default(false)
+  available   Boolean  @default(true)
+  categoryId  String
+  category    MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("menu_items")
+}
+
+// Gallery
+model GalleryImage {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  category  String   // exterior, interior, food, etc.
+  caption   String?
+  sortOrder Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("gallery_images")
+}
+
+// Offers
+model Offer {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @db.Text
+  imageUrl    String
+  discount    String
+  active      Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("offers")
+}
+
+// Reservations
+model Reservation {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String
+  guests    Int
+  date      String   // YYYY-MM-DD
+  time      String   // HH:mm
+  notes     String?  @db.Text
+  status    String   @default("pending") // pending, confirmed, cancelled
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("reservations")
+}
+
+// Orders (for future online ordering)
+model Order {
+  id        String   @id @default(cuid())
+  status    String   @default("pending") // pending, confirmed, ready, completed, cancelled
+  total     Float
+  notes     String?  @db.Text
+
+  items     OrderItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  itemId  String
+  quantity Int
+  price   Float
+
+  @@map("order_items")
+}
+
+// Admin Authentication
+model Admin {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String
+  role          String   @default("OWNER") // OWNER, MANAGER, STAFF
+  active        Boolean  @default(true)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("admins")
+}
