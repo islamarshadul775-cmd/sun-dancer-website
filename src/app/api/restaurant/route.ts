@@ -3,18 +3,18 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    const images = await prisma.galleryImage.findMany({
-      orderBy: { sortOrder: "asc" },
+    const restaurant = await prisma.restaurant.findFirst({
+      include: { openingHours: true },
     });
-    return NextResponse.json(images, {
+    return NextResponse.json(restaurant, {
       headers: {
         "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
       },
     });
   } catch (error) {
-    console.error("❌ Gallery error:", error);
+    console.error("❌ Restaurant error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch gallery" },
+      { error: "Failed to fetch restaurant info" },
       { status: 500 }
     );
   }

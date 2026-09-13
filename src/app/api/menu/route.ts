@@ -7,12 +7,19 @@ export async function GET() {
       where: { active: true },
       orderBy: { sortOrder: "asc" },
       include: {
-        items: { where: { available: true }, orderBy: { name: "asc" } },
+        items: {
+          where: { available: true },
+          orderBy: { name: "asc" },
+        },
       },
     });
-    return NextResponse.json(categories);
+    return NextResponse.json(categories, {
+      headers: {
+        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+      },
+    });
   } catch (error) {
-    console.error("Menu error:", error);
+    console.error("❌ Menu error:", error);
     return NextResponse.json(
       { error: "Failed to fetch menu" },
       { status: 500 }

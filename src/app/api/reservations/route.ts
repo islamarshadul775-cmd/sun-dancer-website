@@ -27,16 +27,32 @@ export async function POST(request: Request) {
     });
 
     // TODO: Send notification via email/WhatsApp/Telegram
-    console.log("New reservation:", reservation);
+    console.log("✅ New reservation created:", reservation);
 
     return NextResponse.json(
       { success: true, reservation },
       { status: 201 }
     );
   } catch (error) {
-    console.error("Reservation error:", error);
+    console.error("❌ Reservation error:", error);
     return NextResponse.json(
       { error: "Failed to create reservation" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET() {
+  try {
+    const reservations = await prisma.reservation.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    });
+    return NextResponse.json(reservations);
+  } catch (error) {
+    console.error("❌ Get reservations error:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch reservations" },
       { status: 500 }
     );
   }

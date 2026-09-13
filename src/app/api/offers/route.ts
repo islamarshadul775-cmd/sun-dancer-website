@@ -3,18 +3,19 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    const images = await prisma.galleryImage.findMany({
-      orderBy: { sortOrder: "asc" },
+    const offers = await prisma.offer.findMany({
+      where: { active: true },
+      orderBy: { createdAt: "desc" },
     });
-    return NextResponse.json(images, {
+    return NextResponse.json(offers, {
       headers: {
         "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
       },
     });
   } catch (error) {
-    console.error("❌ Gallery error:", error);
+    console.error("❌ Offers error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch gallery" },
+      { error: "Failed to fetch offers" },
       { status: 500 }
     );
   }
